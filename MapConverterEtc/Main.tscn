@@ -1,0 +1,180 @@
+[gd_scene load_steps=5 format=3 uid="uid://do0cdl6v1s74u"]
+
+[ext_resource type="Script" path="res://ControlFunctionality.cs" id="2_evb1e"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_rwkdy"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_hdfan"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3smxs"]
+
+[node name="Node3D" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.277066, -0.850772, 0.446566, 0.607488, 0.515187, 0.604599, -0.744441, 0.10377, 0.659575, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_rwkdy")
+skeleton = NodePath("../..")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InputPreview" type="TextureRect" parent="Root"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 374.0
+offset_right = 578.0
+offset_bottom = 650.0
+texture = SubResource("PlaceholderTexture2D_hdfan")
+expand_mode = 2
+stretch_mode = 5
+
+[node name="OutputPreview" type="TextureRect" parent="Root"]
+layout_mode = 0
+offset_left = 591.0
+offset_top = 376.0
+offset_right = 1154.0
+offset_bottom = 651.0
+texture = SubResource("PlaceholderTexture2D_3smxs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Control" type="Control" parent="Root"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="OutputPixelHeight" type="Control" parent="Root/Control"]
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 25.0
+offset_right = 50.0001
+offset_bottom = 65.0
+
+[node name="Label" type="Label" parent="Root/Control/OutputPixelHeight"]
+layout_mode = 0
+offset_right = 93.0
+offset_bottom = 23.0
+text = "output map 
+Pixel Height"
+
+[node name="LineEdit" type="LineEdit" parent="Root/Control/OutputPixelHeight"]
+layout_mode = 0
+offset_left = 116.0
+offset_right = 202.0
+offset_bottom = 31.0
+placeholder_text = "enter int"
+
+[node name="InputPixelDiam" type="Control" parent="Root/Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 83.0
+offset_right = 50.0
+offset_bottom = 123.0
+
+[node name="Label" type="Label" parent="Root/Control/InputPixelDiam"]
+layout_mode = 0
+offset_right = 93.0
+offset_bottom = 23.0
+text = "input map
+pixel diameter"
+
+[node name="LineEdit" type="LineEdit" parent="Root/Control/InputPixelDiam"]
+layout_mode = 0
+offset_left = 116.0
+offset_right = 202.0
+offset_bottom = 31.0
+placeholder_text = "enter int"
+
+[node name="InFilePath" type="Control" parent="Root/Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 153.0
+offset_right = 50.0001
+offset_bottom = 193.0
+
+[node name="Label" type="Label" parent="Root/Control/InFilePath"]
+layout_mode = 0
+offset_right = 93.0
+offset_bottom = 23.0
+text = "in file path"
+
+[node name="LineEdit" type="LineEdit" parent="Root/Control/InFilePath"]
+layout_mode = 0
+offset_left = 116.0
+offset_right = 481.0
+offset_bottom = 31.0
+placeholder_text = "enter path"
+
+[node name="OutFilePath" type="Control" parent="Root/Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 10.0
+offset_top = 213.0
+offset_right = 50.0001
+offset_bottom = 253.0
+
+[node name="Label" type="Label" parent="Root/Control/OutFilePath"]
+layout_mode = 0
+offset_right = 93.0
+offset_bottom = 23.0
+text = "out file path"
+
+[node name="LineEdit" type="LineEdit" parent="Root/Control/OutFilePath"]
+layout_mode = 0
+offset_left = 116.0
+offset_right = 490.0
+offset_bottom = 31.0
+placeholder_text = "enter path"
+
+[node name="ConvertButton" type="Button" parent="Root/Control"]
+layout_mode = 0
+offset_left = 287.0
+offset_top = 23.0
+offset_right = 354.0
+offset_bottom = 54.0
+text = "convert"
+
+[node name="UpdateButton" type="Button" parent="Root/Control"]
+layout_mode = 0
+offset_left = 287.0
+offset_top = 99.0
+offset_right = 409.0
+offset_bottom = 130.0
+text = "update display"
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+offset_left = 691.0
+offset_top = 2.0
+offset_right = 1203.0
+offset_bottom = 514.0
+scale = Vector2(0.73, 0.73)
+
+[node name="SubViewport" type="SubViewport" parent="Root/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="Root/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.05)
+
+[node name="ControlFunctionality" type="Node" parent="Root"]
+script = ExtResource("2_evb1e")
+ConvertButtonPath = NodePath("../Control/ConvertButton")
+UpdateVisualsButtonPath = NodePath("../Control/UpdateButton")
+InputPixelDiameterFieldPath = NodePath("../Control/InputPixelDiam/LineEdit")
+OutputPixelHeightFieldPath = NodePath("../Control/OutputPixelHeight/LineEdit")
+InputFilePathFieldPath = NodePath("../Control/InFilePath/LineEdit")
+OutputFilePathFieldPath = NodePath("../Control/OutFilePath/LineEdit")
+InputPreviewPath = NodePath("../InputPreview")
+OutputPreviewPath = NodePath("../OutputPreview")
