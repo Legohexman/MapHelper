@@ -33,7 +33,7 @@ public static class MapTools
         float normX = Mathf.Cos(pos.X);
         float normY = Mathf.Sin(pos.X);
         float Z = Mathf.Sin(pos.Y);
-
+        
         //x and y scaled to match where the point is on the sphere
         float scaledX = normX * Mathf.Cos(pos.Y);
         float scaledY = normY * Mathf.Cos(pos.Y);
@@ -129,7 +129,7 @@ public static class MapTools
         {
             output = -1f;
         }
-
+        
         return output;
     }
 }

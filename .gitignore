@@ -10,4 +10,5 @@ export_presets.cfg
 .mono/
 data_*/
 
+MapConverterEtc/.vs/
 MapConverterEtc/Builds/
