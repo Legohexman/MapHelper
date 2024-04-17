@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://do0cdl6v1s74u"]
+[gd_scene load_steps=8 format=3 uid="uid://do0cdl6v1s74u"]
 
 [ext_resource type="PackedScene" uid="uid://cpdmxfwu0meyv" path="res://TextInputOption.tscn" id="1_befcu"]
 [ext_resource type="Script" path="res://ControlFunctionality.cs" id="2_evb1e"]
+[ext_resource type="Script" path="res://UnitTests/SearchableSpaceBenchmark.cs" id="3_w4mgn"]
 
 [sub_resource type="World3D" id="World3D_qnj8w"]
 resource_name = "GUI 3d space"
@@ -21,6 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -39,8 +41,8 @@ own_world_3d = true
 world_3d = SubResource("World3D_qnj8w")
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(576, 324)
-render_target_update_mode = 4
+size = Vector2i(2, 2)
+render_target_update_mode = 0
 
 [node name="Node3D" type="Node3D" parent="PanelContainer/SubViewportContainer/SubViewport"]
 
@@ -56,6 +58,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.05)
 keep_aspect = 0
 
 [node name="PanelContainer2" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -72,6 +75,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="PanelContainer3" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -88,6 +92,7 @@ expand_mode = 2
 stretch_mode = 5
 
 [node name="PanelContainer4" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -162,6 +167,21 @@ InputPreviewPath = NodePath("../../../PanelContainer3/InputPreview")
 OutputPreviewPath = NodePath("../../../PanelContainer2/OutputPreview")
 
 [node name="TabContainer" type="TabContainer" parent="."]
+visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
+
+[node name="TreeGraph" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("3_w4mgn")
+minGen = Vector2(-50, -50)
+maxGen = Vector2(50, 50)
+minSearch = Vector2(-25, -25)
+maxSearch = Vector2(25, 25)
+count = 1000000
+squarePartitionCellWidth = 9

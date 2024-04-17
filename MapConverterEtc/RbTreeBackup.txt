@@ -1,0 +1,766 @@
+4/13/2024, 3:57pm
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using static System.Console;
+using static RbTree.ColorEnum;
+
+[assembly: InternalsVisibleTo("Tests")]
+
+namespace RbTree
+{
+	public enum ColorEnum
+	{
+		Red,
+		Black,
+	}
+	public class RbTree<KeyType, ValueType> : IBinaryTree<KeyType, ValueType, RbTree<KeyType, ValueType>.Node> where KeyType : IComparable<KeyType>
+	{
+		public class Node
+		{
+			public Node Left;
+			public Node Right;
+			public Node Parent;
+			public KeyType Key { get; private set; }
+			public LinkedList<ValueType> Values { get; private set; }
+			public override string ToString() => _isLeaf ? "Nil" : $"({Key.ToString()}: {Count}, {Color}, {Values.ToString()})";
+			public ColorEnum Color;
+			private readonly bool _isLeaf;
+			public int Count { get; internal set; }
+
+			public static Node Leaf() => Nil;
+			private static readonly Node Nil = new();
+
+			public Node()
+			{
+				Values = new LinkedList<ValueType>();
+				Color = Black;
+				_isLeaf = true;
+			}
+
+			public Node(KeyType key, ValueType value)
+			{
+				Values = new LinkedList<ValueType>();
+				Values.AddLast(value);
+				Key = key;
+				Parent = Left = Right = Leaf();
+				Count = 1;
+			}
+
+			public Node(KeyType key, ValueType value, Node parent)
+			{
+				Values = new LinkedList<ValueType>();
+				Values.AddLast(value);
+				Key = key;
+				Parent = parent;
+				Left = Right = Leaf();
+				Count = 1;
+			}
+
+			internal Node(Node left, KeyType key, ValueType value, ColorEnum color, Node right)
+			{
+				Values = new LinkedList<ValueType>();
+				Left = left;
+				Values.AddLast(value);
+				Key = key;
+				Color = color;
+				Right = right;
+			}
+
+			public Node(Node n)
+			{
+				Values = n.Values;
+				Key = n.Key;
+				Parent = n.Parent;
+				Left = n.Left;
+				Right = n.Right;
+				Color = n.Color;
+				Count = n.Count;
+			}
+		}
+
+		public Node Root;
+		public readonly Node Nil = Node.Leaf();
+		public int Bh { get; private set; }
+
+		public RbTree()
+		{
+			Root = Nil;
+			Bh = 0;
+		}
+
+		public RbTree(KeyType key, ValueType value)
+		{
+			Root = new Node(key, value, Nil);
+			Root.Left = Root.Right = Nil;
+			Bh = 0;
+		}
+
+		public RbTree(Node root)
+		{
+			Root = root;
+			SetBlackHeight();
+		}
+
+		public RbTree<KeyType, ValueType> Subtree(Node subroot)
+		{
+			RbTree<KeyType,ValueType> tree = new RbTree<KeyType, ValueType>();
+			Node n = subroot;
+			Queue<Node> q = new Queue<Node>();
+			q.Enqueue(n);
+			while (q.Count != 0)
+			{
+				Node v = q.Dequeue();
+				if (v.Left != Nil)
+					q.Enqueue(v.Left);
+				if (v.Right != Nil)
+					q.Enqueue(v.Right);
+				tree.Insert(new Node(v));
+			}
+			return tree;
+		}
+
+		internal bool RedConsistency(Node n)
+		{
+			if (n == Nil)
+				return true;
+			if (n.Color == Red &&
+				(n.Left.Color == Red || n.Right.Color == Red))
+				return false;
+			return RedConsistency(n.Left) && RedConsistency(n.Right);
+		}
+
+		internal int CheckBlackHeight(Node n)
+		{
+			if (n == Nil)
+				return 1;
+			int leftBh = CheckBlackHeight(n.Left);
+			if (leftBh == 0)
+				return leftBh;
+			int rightBh = CheckBlackHeight(n.Right);
+			if (rightBh == 0)
+				return rightBh;
+			if (leftBh != rightBh)
+				return 0;
+			return leftBh + (n.Color == Black ? 1 : 0);
+		}
+
+		internal bool BlackConsistency() => CheckBlackHeight(Root) != 0;
+
+		public bool Validate() => RedConsistency(Root) && BlackConsistency();
+
+		public Node Minimum(Node subtreeRoot)
+		{
+			while (subtreeRoot.Left != Nil)
+				subtreeRoot = subtreeRoot.Left;
+			return subtreeRoot;
+		}
+
+		public Node Maximum(Node subtreeRoot)
+		{
+			while (subtreeRoot.Right != Nil)
+				subtreeRoot = subtreeRoot.Right;
+			return subtreeRoot;
+		}
+
+		public Node Predecessor(Node n)
+		{
+			if (n.Left != Nil)
+				return Maximum(n.Left);
+			var p = n.Parent;
+			while (p != Nil && n == p.Left)
+			{
+				n = p;
+				p = p.Parent;
+			}
+			return p;
+		}
+
+		public Node Successor(Node n)
+		{
+			if (n.Right != Nil)
+				return Minimum(n.Right);
+			var p = n.Parent;
+			while (p != Nil && n == p.Right)
+			{
+				n = p;
+				p = p.Parent;
+			}
+			return p;
+		}
+
+		public bool Contains(KeyType key)
+		{
+			var node = Root;
+			while (node != Nil)
+			{
+				if (key.CompareTo(node.Key) == 0)
+					return true;
+				node = key.CompareTo(node.Key) < 0 ? node.Left : node.Right;
+			}
+			return false;
+		}
+
+		internal void LeftRotate(Node node)
+		{
+			Node temp = node.Right;
+			node.Right = temp.Left;
+			if (temp.Left != Nil)
+				temp.Left.Parent = node;
+			temp.Parent = node.Parent;
+			if (node.Parent == Nil)
+				Root = temp;
+			else if (node == node.Parent.Left)
+				node.Parent.Left = temp;
+			else
+				node.Parent.Right = temp;
+			temp.Left = node;
+			node.Parent = temp;
+		}
+
+		internal void RightRotate(Node node)
+		{
+			Node temp = node.Left;
+			node.Left = temp.Right;
+			if (temp.Right != Nil)
+				temp.Right.Parent = node;
+			temp.Parent = node.Parent;
+			if (node.Parent == Nil)
+				Root = temp;
+			else if (node == node.Parent.Right)
+				node.Parent.Right = temp;
+			else
+				node.Parent.Left = temp;
+			temp.Right = node;
+			node.Parent = temp;
+		}
+
+		private void InsertFixup(Node z)
+		{
+			while (z.Parent.Color == Red)
+			{
+				if (z.Parent == z.Parent.Parent.Left)
+				{
+					Node y = z.Parent.Parent.Right;
+					if (y.Color == Red)
+					{
+						z.Parent.Color = Black;
+						y.Color = Black;
+						z.Parent.Parent.Color = Red;
+						z = z.Parent.Parent;
+					}
+					else
+					{
+						if (z == z.Parent.Right)
+						{
+							z = z.Parent;
+							LeftRotate(z);
+						}
+						z.Parent.Color = Black;
+						z.Parent.Parent.Color = Red;
+						RightRotate(z.Parent.Parent);
+					}
+				}
+				else
+				{
+					Node y = z.Parent.Parent.Left;
+					if (y.Color == Red)
+					{
+						z.Parent.Color = Black;
+						y.Color = Black;
+						z.Parent.Parent.Color = Red;
+						z = z.Parent.Parent;
+					}
+					else
+					{
+						if (z == z.Parent.Left)
+						{
+							z = z.Parent;
+							RightRotate(z);
+						}
+						z.Parent.Color = Black;
+						z.Parent.Parent.Color = Red;
+						LeftRotate(z.Parent.Parent);
+					}
+				}
+			}
+			Root.Color = Black;
+			SetBlackHeight();
+		}
+
+		private void Insert(Node z)
+		{
+			Node y = Nil;
+			Node x = Root;
+			while (x != Nil)
+			{
+				y = x;
+				x = z.Key.CompareTo(x.Key) < 0 ? x.Left : x.Right;
+			}
+			z.Parent = y;
+			if (y == Nil)
+				Root = z;
+			else if (z.Key.CompareTo(y.Key) < 0)
+				y.Left = z;
+			else
+				y.Right = z;
+			z.Left = Nil;
+			z.Right = Nil;
+			z.Color = Red;
+			InsertFixup(z);
+		}
+
+		public Node Add(KeyType key, ValueType value)
+		{
+			Node duplicate = Get(key);
+			if (duplicate != Nil)
+			{
+				duplicate.Count += 1;
+				return duplicate;
+			}
+			Node node = new Node(key,value);
+			Insert(node);
+			return node;
+		}
+
+		private void Transplant(Node u, Node v)
+		{
+			if (u.Parent == Nil)
+				Root = v;
+			else if (u == u.Parent.Left)
+				u.Parent.Left = v;
+			else
+				u.Parent.Right = v;
+			v.Parent = u.Parent;
+		}
+
+		private void DeleteFixup(Node x)
+		{
+			while (x != Root && x.Color == Black)
+			{
+				if (x == x.Parent.Left)
+				{
+					Node w = x.Parent.Right;
+					if (w.Color == Red)
+					{
+						w.Color = Black;
+						x.Parent.Color = Red;
+						LeftRotate(x.Parent);
+						w = x.Parent.Right;
+					}
+					if (w.Left.Color == Black && w.Right.Color == Black)
+					{
+						w.Color = Red;
+						x = x.Parent;
+					}
+					else
+					{
+						if (w.Right.Color == Black)
+						{
+							w.Left.Color = Black;
+							w.Color = Red;
+							RightRotate(w);
+							w = x.Parent.Right;
+						}
+						w.Color = x.Parent.Color;
+						x.Parent.Color = Black;
+						w.Right.Color = Black;
+						LeftRotate(x.Parent);
+						x = Root;
+					}
+				}
+				else
+				{
+					Node w = x.Parent.Left;
+					if (w.Color == Red)
+					{
+						w.Color = Black;
+						x.Parent.Color = Red;
+						RightRotate(x.Parent);
+						w = x.Parent.Left;
+					}
+					if (w.Right.Color == Black && w.Left.Color == Black)
+					{
+						w.Color = Red;
+						x = x.Parent;
+					}
+					else
+					{
+						if (w.Left.Color == Black)
+						{
+							w.Right.Color = Black;
+							w.Color = Red;
+							LeftRotate(w);
+							w = x.Parent.Left;
+						}
+						w.Color = x.Parent.Color;
+						x.Parent.Color = Black;
+						w.Left.Color = Black;
+						RightRotate(x.Parent);
+						x = Root;
+					}
+				}
+			}
+			x.Color = Black;
+			if (Root != Nil)
+				SetBlackHeight();
+		}
+
+		internal void Delete(Node z)
+		{
+			Node y = z;
+			ColorEnum yOriginalColor = y.Color;
+			Node x;
+			if (z.Left == Nil)
+			{
+				x = z.Right;
+				Transplant(z, z.Right);
+			}
+			else if (z.Right == Nil)
+			{
+				x = z.Left;
+				Transplant(z, z.Left);
+			}
+			else
+			{
+				y = Minimum(z.Right);
+				yOriginalColor = y.Color;
+				x = y.Right;
+				if (y.Parent == z)
+					x.Parent = y;
+				else
+				{
+					Transplant(y, y.Right);
+					y.Right = z.Right;
+					y.Right.Parent = y;
+				}
+				Transplant(z, y);
+				y.Left = z.Left;
+				y.Left.Parent = y;
+				y.Color = z.Color;
+			}
+			if (yOriginalColor == Black)
+				DeleteFixup(x);
+		}
+
+		public void Remove(KeyType key)
+		{
+			if (Root == Nil)
+				return;
+			Node del = Get(key);
+			if (del == Nil)
+				return;
+			if (del.Count > 1)
+			{
+				del.Count -= 1;
+				return;
+			}
+			Delete(del);
+		}
+
+		public Node Get(KeyType key)
+		{
+			var node = Root;
+			while (node != Nil && key.CompareTo(node.Key) != 0)
+				node = key.CompareTo(node.Key) < 0 ? node.Left : node.Right;
+			return node;
+		}
+
+		/// <summary>
+		/// Returns all nodes whose keys are within bound1 and bound2 inclusive
+		/// </summary>
+		public List<Node> GetRange(KeyType lower, KeyType upper)
+		{
+			List<Node> nodes = new List<Node>();
+			GetRangeSubtree(Root, lower, upper, nodes);
+			return nodes;
+		}
+
+		public bool CompMaybeInclusive(KeyType objectOfComparison, KeyType comp, bool inclusive)
+		{
+			return inclusive ? objectOfComparison.Equals(comp) : false;
+		}
+
+		/// <summary>
+		/// 0 is in bounds. -1 is left of bounds. 1 is right of bounds
+		/// </summary>
+		/// <param name="left"></param>
+		/// <param name="right"></param>
+		/// <param name="input"></param>
+		/// <returns></returns>
+		public int directionFromBounds(KeyType left, KeyType right, KeyType input)
+		{
+			if (input.CompareTo(left) < 0) return -1;
+			if (input.CompareTo(right) > 0) return 1;
+			return 0;
+		}
+
+		public void GetRangeSubtree(Node node, KeyType lower, KeyType upper, List<Node> list)
+		{
+			int direction = directionFromBounds(lower, upper, node.Key);
+
+			if (direction == 0)
+			{
+				list.Add(node);
+				if(node.Left != null) GetRangeSubtree(node.Left, lower, upper, list);
+				if(node.Right != null) GetRangeSubtree(node.Right, lower, upper, list);
+			}
+
+			else if(direction > 0 && node.Left != null)
+			{
+				GetRangeSubtree(node.Left, lower, upper, list);
+			}
+
+			else if(direction < 0 && node.Right != null)
+			{
+				GetRangeSubtree(node.Right, lower, upper, list);
+			}
+		}
+
+		internal Node MaxWithBh(int blackHeight)
+		{
+			if (Bh == blackHeight)
+				return Root;
+			Node y = Root;
+			int nodeBh = Bh;
+			while (y.Right != Nil)
+			{
+				y = y.Right;
+				if (y.Color == Black)
+					nodeBh -= 1;
+				if (nodeBh == blackHeight)
+					return y;
+			}
+			return Nil;
+		}
+
+		internal Node MinWithBh(int blackHeight)
+		{
+			if (Bh == blackHeight)
+				return Root;
+			Node y = Root;
+			int nodeBh = Bh;
+			while (y.Left != Nil)
+			{
+				y = y.Left;
+				if (y.Color == Black)
+					nodeBh -= 1;
+				if (nodeBh == blackHeight)
+					return y;
+			}
+			return Nil;
+		}
+
+		/*
+		 * Runs in O(log(n)) time, so using it in inserts and deletes doesn't change the asymptotic running time
+		 * of those operations.
+		 */
+		internal void SetBlackHeight()
+		{
+			Node y = Root;
+			Bh = 0;
+			while (y.Right != Nil)
+			{
+				y = y.Right;
+				if (y.Color == Black)
+					Bh += 1;
+			}
+		}
+
+		public int NodeBh(Node n)
+		{
+			if (n == Root)
+				return Bh;
+			int bh = Bh;
+			Node current = Root.Key.CompareTo(n.Key) > 0 ? Root.Left : Root.Right;
+			while (current != n)
+			{
+				if (current.Color == Black)
+					bh -= 1;
+				current = current.Key.CompareTo(n.Key) > 0 ? current.Left : current.Right;
+			}
+			return bh;
+		}
+
+		/// <summary>
+		/// This method takes two trees and a key, such that <c>t1.Maximum()</c> is less than <c>k</c>
+		/// and <c>k</c> is less than <c>t2.Minimum()</c>, may destroy t1 and t2, and returns a tree
+		/// containing all elements in the original two trees, and k.
+		/// </summary>
+		/// <param name="t1">A tree with all keys less than param <c>key</c></param>
+		/// <param name="key">A value greater than all keys in <c>t1</c> and less than all keys in <c>t2</c></param>
+		/// <param name="t2">A tree with all keys greater than param <c>key</c></param>
+		/// <returns>A tree containing all elements in the original two trees, and <c>key</c></returns>
+		/// <exception cref="ArgumentException">
+		/// If <c>key</c> is not greater than <c>t1</c>'s maximum key and less than <c>t2</c>'s minimum key
+		/// </exception>
+		public static RbTree<KeyType, ValueType> Join(RbTree<KeyType, ValueType> t1, KeyType key, ValueType value, RbTree<KeyType, ValueType> t2)
+		{
+
+			KeyType t1Max = t1.Maximum(t1.Root).Key;
+			KeyType t2Min = t2.Minimum(t2.Root).Key;
+
+			if (key.CompareTo(t1Max) <= 0 || key.CompareTo(t2Min) >= 0)
+				throw new ArgumentException(
+					"The join key must be greater than all keys in Tree 1 and less than all keys in Tree 2.");
+
+			bool returnT1 = true;
+			Node k = new Node(key, value) { Color = Red };
+			if (t1.Bh == t2.Bh)
+			{
+				k.Color = Black;
+				t1.Root.Parent = t2.Root.Parent = k;
+				k.Left = t1.Root;
+				k.Right = t2.Root;
+				t1.Root = k;
+				// since both original roots are black, and the new root must be black, the resulting tree's Bh
+				// must be incremented
+				t1.Bh += 1;
+			}
+			else if (t1.Bh > t2.Bh)
+			{
+				Node n = t1.MaxWithBh(t2.Bh);
+				n.Parent.Right = k;
+				k.Left = n;
+				k.Right = t2.Root;
+				k.Parent = n.Parent;
+				n.Parent = t2.Root.Parent = k;
+				if (k.Parent.Color == Red)
+					t1.InsertFixup(k);
+			}
+			else if (t1.Bh < t2.Bh)
+			{
+				Node n = t2.MinWithBh(t1.Bh);
+				n.Parent.Left = k;
+				k.Right = n;
+				k.Left = t1.Root;
+				k.Parent = n.Parent;
+				n.Parent = t1.Root.Parent = k;
+				if (k.Parent.Color == Red)
+					t2.InsertFixup(k);
+				returnT1 = false;
+			}
+
+			return returnT1 ? t1 : t2;
+		}
+
+		internal static (Node left, KeyType key, ColorEnum color, Node right) Expose(Node n)
+		{
+			Node left = n.Left;
+			KeyType key = n.Key;
+			ColorEnum c = n.Color;
+			Node right = n.Right;
+
+			return (left, key, c, right);
+		}
+
+		public List<Node> PathToNode(Node n)
+		{
+			Node current = Root;
+			List<Node> path = new List<Node>();
+			while (current != Nil && current != n)
+			{
+				path.Add(current);
+				current = current.Key.CompareTo(n.Key) > 1 ? current.Left : current.Right;
+			}
+			if (current == Nil)
+				throw new ArgumentException("Node not found");
+			return path;
+		}
+
+		public (RbTree<KeyType, ValueType> left, bool containsKey, RbTree<KeyType, ValueType> right) Split(Node n, KeyType key)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static RbTree<KeyType, ValueType> Union(RbTree<KeyType, ValueType> t1, RbTree<KeyType, ValueType> t2)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static RbTree<KeyType, ValueType> Intersect(RbTree<KeyType, ValueType> t1, RbTree<KeyType, ValueType> t2)
+		{
+			throw new NotImplementedException();
+		}
+
+		public static RbTree<KeyType, ValueType> SetDifference(RbTree<KeyType, ValueType> t1, RbTree<KeyType, ValueType> t2)
+		{
+			throw new NotImplementedException();
+		}
+
+
+		public List<KeyType> InOrderSubtreeKeys(Node n, List<KeyType> list)
+		{
+			if (n == Nil)
+				return list;
+			InOrderSubtreeKeys(n.Left, list);
+			for (int i = 0; i < n.Count; ++i)
+				list.Add(n.Key);
+			InOrderSubtreeKeys(n.Right, list);
+			return list;
+		}
+
+		public List<KeyType> InOrderKeys()
+		{
+			return InOrderSubtreeKeys(Root, new List<KeyType>());
+		}
+
+		public void Print()
+		{
+			Queue<(int depth, Node node)> queue = new Queue<(int depth, Node node)>();
+			List<(int depth, Node node)> list = new();
+			queue.Enqueue((0, Root));
+
+			while (queue.Count != 0)
+			{
+				(int level, Node temp) pair = queue.Dequeue();
+				list.Add(pair);
+				pair.level += 1;
+				if (pair.temp.Left != Nil)
+					queue.Enqueue((pair.level, pair.temp.Left));
+				if (pair.temp.Right != Nil)
+					queue.Enqueue((pair.level, pair.temp.Right));
+			}
+
+			list = list.OrderByDescending(p => p.node.Key).ToList();
+
+			foreach (var n in list)
+			{
+				string pad = string.Concat(Enumerable.Repeat("    ", n.depth));
+				Write(pad);
+				BackgroundColor = ConsoleColor.White;
+				ForegroundColor = n.node.Color == Red ? ConsoleColor.Red : ConsoleColor.Black;
+				Write($"{n.node.Key}: {n.node.Count}");
+				ResetColor();
+				WriteLine();
+			}
+		}
+
+		public void NewTreeFrom(ValueType[] elements)
+		{
+			throw new NotImplementedException();
+		}
+
+		public void OptimizeTree()
+		{
+			throw new NotImplementedException();
+		}
+
+		public Node AddElement(KeyType key, ValueType value)
+		{
+			return Add(key, value);
+		}
+
+		void IBinaryTree<KeyType,ValueType,Node>.RemoveNode(Node node)
+		{
+			Delete(node);
+		}
+
+		public List<Node> SearchRange(KeyType leftBound, KeyType rightBound)
+		{
+			return SearchRange(leftBound, rightBound);
+		}
+	}
+}

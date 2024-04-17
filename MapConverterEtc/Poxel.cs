@@ -11,6 +11,7 @@ public struct Poxel
 
     public Poxel(Vector3 point, int layerCount, Color initColor)
     {
+        
         this.point = point;
         colors = new Color[layerCount];
         colors.Initialize();
