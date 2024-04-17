@@ -11,6 +11,11 @@ public static class UtilShit
             list.Add(obj);
         }
     }
+
+    public static void GDPrintWithName(string name, object obj)
+    {
+        GD.Print($"{name}: {obj}");
+    }
 }
 
 /// <summary>

@@ -1,4 +1,7 @@
-﻿using Godot;
+﻿//#define TESTLOGS
+
+
+using Godot;
 using System;
 using System.Collections.Generic;
 
@@ -79,9 +82,15 @@ public class SquareSpacePartition<Value> : ISearchableSpaceContainer<Vector2, Va
         Vector2I maxCell = CellByPosition(max);
         for(int x = minCell.X; x <= maxCell.X; x++)
         {
+#if TESTLOGS
+            UtilShit.GDPrintWithName(nameof(x), x);
+#endif
             for(int y = minCell.Y; y <= maxCell.Y; y++)
             {
-                foreach((Vector2,Value) element in storage[x, y])
+#if TESTLOGS
+                UtilShit.GDPrintWithName(nameof(y), y);
+#endif
+                foreach ((Vector2,Value) element in storage[x, y])
                 {
                     if(element.Item1 >= min && element.Item1 <= max)
                     {

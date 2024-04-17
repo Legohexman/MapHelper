@@ -52,7 +52,9 @@ public partial class SearchableSpaceBenchmark : Node
             partitionAddTime += stopwatch.Elapsed;
         }
 
+        GDPrintWithName("listCount", list.Count);
         GDPrintWithName(nameof(listAddTime), listAddTime.TotalMilliseconds);
+        //GDPrintWithName("partitionCount");
         GDPrintWithName(nameof(partitionAddTime), partitionAddTime.TotalMilliseconds);
 
         List<Vector2> partitionSearchResult;
@@ -63,9 +65,15 @@ public partial class SearchableSpaceBenchmark : Node
 
         stopwatch.Restart();
         List<Vector2> listSearchResult = new List<Vector2>();
-        foreach(Vector2 v in list)
+        /*foreach(Vector2 v in list)
         {
-            if(v < maxSearch && v > minSearch) listSearchResult.Add(v);
+            if (v < minSearch || v > maxSearch) continue;
+            if(v <= maxSearch && v >= minSearch) listSearchResult.Add(v);
+        }*/
+
+        for(int i = 0;i < list.Count;i++)
+        {
+            if (list[i] <= maxSearch && list[i] >= minSearch) listSearchResult.Add(list[i]);
         }
         listSearchTime = stopwatch.Elapsed;
 
