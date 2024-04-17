@@ -16,6 +16,16 @@ public static class UtilShit
     {
         GD.Print($"{name}: {obj}");
     }
+
+    public static bool AGreatB(Vector2 a, Vector2 b)
+    {
+        return a.X > b.X && a.Y > b.Y;
+    }
+
+    public static bool AGreatEqualB(Vector2 a, Vector2 b)
+    {
+        return a.X >= b.X && a.Y >= b.Y;
+    }
 }
 
 /// <summary>

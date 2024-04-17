@@ -92,7 +92,8 @@ public class SquareSpacePartition<Value> : ISearchableSpaceContainer<Vector2, Va
 #endif
                 foreach ((Vector2,Value) element in storage[x, y])
                 {
-                    if(element.Item1 >= min && element.Item1 <= max)
+                    if(UtilShit.AGreatEqualB(element.Item1, min) && UtilShit.AGreatEqualB(max,element.Item1))
+                    //if(element.Item1 > min && element.Item1 < max)
                     {
                         list.Add(element.Item2);
                     }

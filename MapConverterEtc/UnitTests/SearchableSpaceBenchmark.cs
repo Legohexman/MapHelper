@@ -73,7 +73,8 @@ public partial class SearchableSpaceBenchmark : Node
 
         for(int i = 0;i < list.Count;i++)
         {
-            if (list[i] <= maxSearch && list[i] >= minSearch) listSearchResult.Add(list[i]);
+            //if (list[i] < maxSearch && list[i] > minSearch) listSearchResult.Add(list[i]);
+            if (UtilShit.AGreatEqualB(maxSearch, list[i]) && UtilShit.AGreatEqualB(list[i], minSearch)) listSearchResult.Add(list[i]);
         }
         listSearchTime = stopwatch.Elapsed;
 
