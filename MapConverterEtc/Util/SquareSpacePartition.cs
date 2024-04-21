@@ -38,6 +38,7 @@ public class SquareSpacePartition<Value> : ISearchableSpaceContainer<Vector2, Va
     public void Add(Vector2 key, Value value)
     {
         Vector2I cell = CellByPosition(key);
+        cell = cell.Clamp(Vector2I.Zero, new Vector2I(cellWidth - 1, cellWidth - 1));
         storage[cell.X, cell.Y].Add((key, value));
     }
 
